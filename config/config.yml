@@ -1,0 +1,28 @@
+audio:
+  rate: 16000  # Sample rate (Hz)
+  chunk: 4096  # Buffer size (increased for longer recordings)
+  channels: 1  # Mono audio
+  max_duration: 0  # Maximum recording duration in seconds (0 for unlimited, was 30)
+
+whisper:
+  model_size: "medium"  # Changed to medium for better accuracy
+  device: "auto"  # Options: cpu, cuda, auto
+  compute_type: "float32"  # Options: float16, float32, int8
+  language: "en"  # Language code (leave empty for auto-detect)
+  models_dir: "~/.cache/whisper"  # Directory to store models
+
+hotkeys:
+  toggle_recording: ["F9"]  # Hotkey combination (simplified to F9 key)
+  use_hypr_dispatch: false  # Disabled Hyprland IPC, using direct keyboard detection instead
+
+ui:
+  notifications: true  # Enable desktop notifications
+  notification_timeout: 2  # Notification display time in seconds
+  visual_indicator:
+    enabled: true  # Show visual indicator when recording
+    type: "overlay"  # Indicator type: overlay, border, icon
+    position: "top-right"  # Position: top-left, top-right, bottom-left, bottom-right, top-center, bottom-center
+    size: "medium"  # Size: small, medium, large (changed to medium for better visibility)
+    color: "#ff0000"  # Color in hex format
+    opacity: 0.8  # Opacity (0.0-1.0) (increased for better visibility)
+    pulse: true  # Enable pulsing effect

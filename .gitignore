@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.env
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+.directory
+
+# Logs
+*.log
+nohup.out
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+
+# Distribution
+build/
+dist/
+*.egg-info/
+
+# User config (will be created by user)
+config/user_config.yml
+
+# Test files
+test_*.wav

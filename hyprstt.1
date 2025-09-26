@@ -1,0 +1,56 @@
+.TH HYPRLAND-WHISPER-STT 1 "May 2024" "hyprland-whisper-stt 0.1.0" "User Commands"
+.SH NAME
+hyprland-whisper-stt \- Speech-to-Text system for Hyprland using Whisper
+.SH SYNOPSIS
+.B hyprland-whisper-stt
+.SH DESCRIPTION
+.B hyprland-whisper-stt
+is a Speech-to-Text (STT) system for Hyprland and Wayland environments using
+OpenAI's Whisper for speech recognition.
+.PP
+The system records audio from your microphone when triggered by a keyboard shortcut,
+processes the speech using Whisper's speech recognition (running locally on your machine),
+and injects the transcribed text into the currently focused window/input field.
+.SH OPTIONS
+None. All configuration is done through the configuration file.
+.SH CONFIGURATION
+The configuration file is located at:
+.B ~/.config/whisper-stt/config.yml
+.PP
+Key configuration options include:
+.TP
+.B audio
+Settings for audio capture (rate, chunk size, channels)
+.TP
+.B whisper
+Settings for the Whisper model (model size, device, compute type, language)
+.TP
+.B hotkeys
+Keyboard shortcut settings (toggle_recording, use_hypr_dispatch)
+.TP
+.B ui
+Notification settings (enable/disable, timeout)
+.SH USAGE
+1. Start the application
+.PP
+2. Press the configured hotkey (default: Super+Space) to start recording
+.PP
+3. Speak clearly into your microphone
+.PP
+4. Press the hotkey again to stop recording and process speech
+.PP
+5. The transcribed text will be typed into the currently focused window/input field
+.SH FILES
+.TP
+.B ~/.config/whisper-stt/config.yml
+Configuration file
+.TP
+.B ~/.local/share/whisper-stt/logs/whisper_stt.log
+Log file
+.TP
+.B ~/.cache/whisper
+Directory for Whisper model files
+.SH BUGS
+Report bugs to: https://github.com/yourusername/hyprland-whisper-stt/issues
+.SH AUTHOR
+Your Name <your.email@example.com>

@@ -1,0 +1,17 @@
+[Unit]
+Description=HyprSTT Speech-to-Text Service
+After=network.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
+
+[Service]
+Type=simple
+Environment="PYTHONUNBUFFERED=1"
+ExecStart=/bin/bash -c 'cd %h/hyprstt && source venv/bin/activate && python -m src.main'
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=default.target

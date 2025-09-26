@@ -1,0 +1,19 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=HyprSTT
+Comment=Speech-to-Text using OpenAI Whisper for Hyprland/Wayland
+GenericName=Speech Recognition
+Icon=audio-input-microphone
+Exec=SCRIPT_DIR/run-niri.sh
+Path=SCRIPT_DIR
+Terminal=false
+StartupNotify=true
+Categories=AudioVideo;Audio;Utility;
+Keywords=speech;voice;transcription;whisper;stt;microphone;
+MimeType=
+Actions=
+
+[Desktop Action debug]
+Name=Run in Debug Mode
+Exec=SCRIPT_DIR/run-dev.sh
