@@ -47,7 +47,12 @@ class WhisperSTTController:
         self.text_injector = None
         self.visual_indicator = None
         self.initialized = False
-        
+        self.state_file = os.path.expanduser("~/.local/share/hyprstt/state")
+
+        # Ensure state directory exists and initialize state
+        os.makedirs(os.path.dirname(self.state_file), exist_ok=True)
+        self._write_state("idle")
+
         # Initialize components
         self._init_components()
         
@@ -75,8 +80,10 @@ class WhisperSTTController:
                 "models_dir": os.path.expanduser("~/.cache/whisper")
             },
             "hotkeys": {
-                "toggle_recording": ["SUPER", "SPACE"],
-                "use_hypr_dispatch": True
+                "method": "external",
+                "external_script": "./toggle-stt.sh",
+                "toggle_recording": ["CTRL", "ALT", "SPACE"],
+                "use_hypr_dispatch": False
             },
             "ui": {
                 "notifications": True,
@@ -167,17 +174,30 @@ class WhisperSTTController:
                 logger.error(f"Failed to initialize text injector: {e}")
                 raise
             
-            # Set up keyboard listener
+            # Set up keyboard listener based on method
+            hotkey_method = self.config["hotkeys"].get("method", "external")
             try:
-                logger.info("Setting up keyboard listener...")
-                if self.config["hotkeys"]["use_hypr_dispatch"]:
-                    self._setup_hyprland_listener()
+                logger.info(f"Setting up keyboard listener (method: {hotkey_method})...")
+
+                if hotkey_method == "external":
+                    logger.info("Using external script method - no direct keyboard monitoring needed")
+                    logger.info("Configure your compositor to call the toggle script for hotkey functionality")
+                elif hotkey_method == "direct":
+                    if self.config["hotkeys"]["use_hypr_dispatch"]:
+                        self._setup_hyprland_listener()
+                    else:
+                        self._setup_direct_hotkey_listener()
+                elif hotkey_method == "disabled":
+                    logger.info("Hotkey method disabled - only external signals will work")
                 else:
-                    self._setup_direct_hotkey_listener()
+                    logger.warning(f"Unknown hotkey method '{hotkey_method}', falling back to external")
+
                 logger.info("Keyboard listener setup successfully")
             except Exception as e:
                 logger.error(f"Failed to setup keyboard listener: {e}")
-                raise
+                # Don't raise for external method as it's not critical
+                if hotkey_method == "direct":
+                    raise
 
             try:
                 # Initialize visual indicator if enabled
@@ -280,7 +300,15 @@ class WhisperSTTController:
                     self._toggle_recording()
         except Exception as e:
             logger.error(f"Error handling Hyprland event: {e}")
-    
+
+    def _write_state(self, state: str):
+        """Write current state to file for external script notifications"""
+        try:
+            with open(self.state_file, 'w') as f:
+                f.write(state)
+        except Exception as e:
+            logger.warning(f"Failed to write state file: {e}")
+
     def _on_recording_changed(self, is_recording: bool):
         """
         Callback for recording state changes
@@ -290,6 +318,9 @@ class WhisperSTTController:
         """
         logger.info(f"*** DEBUGGING: Recording state changed from {self.is_recording} to {is_recording}")
         self.is_recording = is_recording
+
+        # Write state for external script
+        self._write_state("recording" if is_recording else "idle")
 
         # Show/hide visual indicator
         if self.visual_indicator:

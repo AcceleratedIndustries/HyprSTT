@@ -12,8 +12,10 @@ whisper:
   models_dir: "~/.cache/whisper"  # Directory to store models
 
 hotkeys:
-  toggle_recording: ["F9"]  # Hotkey combination (simplified to F9 key)
-  use_hypr_dispatch: false  # Disabled Hyprland IPC, using direct keyboard detection instead
+  method: "external"  # Options: external, direct, disabled
+  external_script: "./toggle-stt.sh"  # Path to toggle script (relative to hyprstt directory)
+  toggle_recording: ["CTRL", "ALT", "SPACE"]  # Hotkey for direct method (avoid function keys)
+  use_hypr_dispatch: false  # Use Hyprland IPC integration (for direct method only)
 
 ui:
   notifications: true  # Enable desktop notifications
