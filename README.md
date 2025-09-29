@@ -1,4 +1,4 @@
-# Hyprland Whisper STT
+# HyprSTT
 
 A Speech-to-Text system for Hyprland and Wayland environments using OpenAI's Whisper for speech recognition.
 
@@ -56,8 +56,8 @@ sudo ninja -C build install
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/hyprland-whisper-stt.git
-cd hyprland-whisper-stt
+git clone https://github.com/yourusername/hyprstt.git
+cd hyprstt
 ```
 
 ### 2. Create a Virtual Environment (Recommended)
@@ -166,16 +166,16 @@ python -m src.main
 To start the application automatically when Hyprland starts, add to your Hyprland configuration file (`~/.config/hypr/hyprland.conf`):
 
 ```Hyprland
-exec-once = /path/to/hyprland-whisper-stt/run.sh
+exec-once = /path/to/hyprstt/run.sh
 ```
 
 Create the startup script (`run.sh`):
 
 ```bash
 #!/bin/bash
-# File: /path/to/hyprland-whisper-stt/run.sh
+# File: /path/to/hyprstt/run.sh
 
-cd /path/to/hyprland-whisper-stt
+cd /path/to/hyprstt
 source venv/bin/activate
 python -m src.main
 ```
@@ -183,7 +183,7 @@ python -m src.main
 Make the script executable:
 
 ```bash
-chmod +x /path/to/hyprland-whisper-stt/run.sh
+chmod +x /path/to/hyprstt/run.sh
 ```
 
 ### Using the STT System

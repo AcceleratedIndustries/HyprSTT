@@ -1,4 +1,4 @@
-# Hyprland Whisper STT
+# HyprSTT
 
 A Speech-to-Text application designed to work with Hyprland and other Wayland compositors on Linux. Records audio on hotkey press, transcribes it using OpenAI's Whisper model, and copies the transcribed text to the clipboard.
 
@@ -121,7 +121,7 @@ ui:
 For more reliable hotkey detection, add this to your Hyprland config:
 
 ```
-bind = SUPER, SPACE, exec, /path/to/hyprland-whisper-stt/toggle-stt.sh
+bind = SUPER, SPACE, exec, /path/to/hyprstt/toggle-stt.sh
 ```
 
 ### Using Different Models
