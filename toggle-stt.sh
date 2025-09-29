@@ -14,22 +14,41 @@ NOTIFICATION_TIMEOUT=2
 # Ensure state directory exists
 mkdir -p "$(dirname "$STATE_FILE")"
 
-# Find the Python process running STT
-PIDS=$(pgrep -f "$PROCESS_NAME" || true)
+# Try to get PID from file first, then fall back to pgrep
+PID_FILE="$HOME/.local/share/hyprstt/hyprstt.pid"
+PID=""
 
-if [ -z "$PIDS" ]; then
-    notify-send "HyprSTT" "Process not running - start HyprSTT first" --expire-time=${NOTIFICATION_TIMEOUT}000
-    exit 1
+if [ -f "$PID_FILE" ]; then
+    PID=$(cat "$PID_FILE" 2>/dev/null || echo "")
+    # Validate that the PID is still running and is the correct process
+    if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+        # Check if it's actually our process
+        if ! ps -p "$PID" -o cmd= | grep -q "python -m src.main"; then
+            PID=""
+        fi
+    else
+        PID=""
+    fi
 fi
 
-# Handle multiple instances
-PID_COUNT=$(echo "$PIDS" | wc -l)
-if [ "$PID_COUNT" -gt 1 ]; then
-    notify-send "HyprSTT" "Warning: Multiple instances detected, using first one" --expire-time=${NOTIFICATION_TIMEOUT}000
-fi
+# Fall back to pgrep if PID file method failed
+if [ -z "$PID" ]; then
+    PIDS=$(pgrep -f "$PROCESS_NAME" || true)
 
-# Use the first PID
-PID=$(echo "$PIDS" | head -n1)
+    if [ -z "$PIDS" ]; then
+        notify-send "HyprSTT" "Process not running - start HyprSTT first" --expire-time=${NOTIFICATION_TIMEOUT}000
+        exit 1
+    fi
+
+    # Handle multiple instances
+    PID_COUNT=$(echo "$PIDS" | wc -l)
+    if [ "$PID_COUNT" -gt 1 ]; then
+        notify-send "HyprSTT" "Warning: Multiple instances detected, using first one" --expire-time=${NOTIFICATION_TIMEOUT}000
+    fi
+
+    # Use the first PID
+    PID=$(echo "$PIDS" | head -n1)
+fi
 
 # Send SIGUSR1 signal to toggle recording
 if kill -USR1 "$PID" 2>/dev/null; then
