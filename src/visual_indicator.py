@@ -75,11 +75,22 @@ class VisualIndicator:
             # Create special workspace for overlay
             subprocess.run(["hyprctl", "dispatch", "exec", "kitty --class=stt_indicator"])
             time.sleep(0.2)  # Wait for window to appear
-            
-            # Configure window
-            subprocess.run(["hyprctl", "dispatch", "movetoworkspacesilent", "special:stt_indicator", "address:$(hyprctl activewindow -j | jq -r .address)"])
-            subprocess.run(["hyprctl", "dispatch", "resizewindowpixel", f"exact {overlay_width} {overlay_height}", "address:$(hyprctl clients -j | jq -r '.[] | select(.class==\"stt_indicator\") | .address')"])
-            subprocess.run(["hyprctl", "dispatch", "movewindowpixel", f"exact {pos_x} {pos_y}", "address:$(hyprctl clients -j | jq -r '.[] | select(.class==\"stt_indicator\") | .address')"])
+
+            # Get the address of the newly created stt_indicator window
+            result = subprocess.run(
+                ["hyprctl", "clients", "-j"],
+                capture_output=True, text=True, check=True
+            )
+            clients = json.loads(result.stdout)
+            stt_windows = [client for client in clients if client.get("class") == "stt_indicator"]
+
+            if stt_windows:
+                indicator_address = stt_windows[0].get("address", "")
+                if indicator_address:
+                    # Configure window using the correct address
+                    subprocess.run(["hyprctl", "dispatch", "movetoworkspacesilent", "special:stt_indicator", f"address:{indicator_address}"])
+                    subprocess.run(["hyprctl", "dispatch", "resizewindowpixel", f"exact {overlay_width} {overlay_height}", f"address:{indicator_address}"])
+                    subprocess.run(["hyprctl", "dispatch", "movewindowpixel", f"exact {pos_x} {pos_y}", f"address:{indicator_address}"])
             
             # Set appearance
             subprocess.run(["hyprctl", "keyword", "windowrulev2", f"opacity {self.opacity} {self.opacity},class:^(stt_indicator)$"])
