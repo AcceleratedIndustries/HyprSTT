@@ -58,7 +58,12 @@ if [ -z "$PID" ]; then
 fi
 
 # Send SIGUSR1 signal to toggle recording
+echo "DEBUG: About to send SIGUSR1 to PID: $PID" >&2
+echo "DEBUG: Process info: $(ps -p "$PID" -o pid,ppid,cmd 2>/dev/null || echo 'Process not found')" >&2
+echo "DEBUG: Current focused window PID: $(hyprctl activewindow | grep -E 'pid:' | cut -d' ' -f2 2>/dev/null || echo 'unknown')" >&2
+
 if kill -USR1 "$PID" 2>/dev/null; then
+    echo "DEBUG: Successfully sent SIGUSR1 to PID $PID" >&2
     # Try to determine current state for better notification
     if [ -f "$STATE_FILE" ]; then
         STATE=$(cat "$STATE_FILE" 2>/dev/null || echo "unknown")
