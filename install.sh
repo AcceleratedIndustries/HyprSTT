@@ -22,7 +22,7 @@ echo "Checking system dependencies..."
 MISSING_DEPS=()
 
 # Mandatory dependencies
-for dep in python python3 pip socat wtype
+for dep in python python3 python-pip socat wtype
 do
     if ! command_exists "$dep"; then
         MISSING_DEPS+=("$dep")
