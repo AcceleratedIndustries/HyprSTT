@@ -10,6 +10,7 @@ set -euo pipefail
 PROCESS_NAME="python -m src.main"
 STATE_FILE="$HOME/.local/share/hyprstt/state"
 NOTIFICATION_TIMEOUT=2
+DEBUG_LOG="$HOME/.local/share/hyprstt/toggle-debug.log"
 
 # Ensure state directory exists
 mkdir -p "$(dirname "$STATE_FILE")"
@@ -26,20 +27,20 @@ if [ -f "$PID_FILE" ]; then
         CMD_LINE=$(ps -p "$PID" -o cmd= 2>/dev/null || echo "")
         if [ -n "$CMD_LINE" ] && echo "$CMD_LINE" | grep -q "src\.main"; then
             # PID is valid and correct process
-            echo "DEBUG: Using PID from file: $PID" >&2
+            echo "$(date): DEBUG: Using PID from file: $PID" >> "$DEBUG_LOG"
         else
-            echo "DEBUG: PID file exists but process doesn't match. CMD: $CMD_LINE" >&2
+            echo "$(date): DEBUG: PID file exists but process doesn't match. CMD: $CMD_LINE" >> "$DEBUG_LOG"
             PID=""
         fi
     else
-        echo "DEBUG: PID from file not running or kill -0 failed" >&2
+        echo "$(date): DEBUG: PID from file not running or kill -0 failed" >> "$DEBUG_LOG"
         PID=""
     fi
 fi
 
 # Fall back to pgrep if PID file method failed
 if [ -z "$PID" ]; then
-    echo "DEBUG: Falling back to pgrep" >&2
+    echo "$(date): DEBUG: Falling back to pgrep" >> "$DEBUG_LOG"
     PIDS=$(pgrep -f "$PROCESS_NAME" || true)
 
     if [ -z "$PIDS" ]; then
@@ -58,12 +59,12 @@ if [ -z "$PID" ]; then
 fi
 
 # Send SIGUSR1 signal to toggle recording
-echo "DEBUG: About to send SIGUSR1 to PID: $PID" >&2
-echo "DEBUG: Process info: $(ps -p "$PID" -o pid,ppid,cmd 2>/dev/null || echo 'Process not found')" >&2
-echo "DEBUG: Current focused window PID: $(hyprctl activewindow | grep -E 'pid:' | cut -d' ' -f2 2>/dev/null || echo 'unknown')" >&2
+echo "$(date): DEBUG: About to send SIGUSR1 to PID: $PID" >> "$DEBUG_LOG"
+echo "$(date): DEBUG: Process info: $(ps -p "$PID" -o pid,ppid,cmd 2>/dev/null || echo 'Process not found')" >> "$DEBUG_LOG"
+echo "$(date): DEBUG: Current focused window PID: $(hyprctl activewindow | grep -E 'pid:' | cut -d' ' -f2 2>/dev/null || echo 'unknown')" >> "$DEBUG_LOG"
 
 if kill -USR1 "$PID" 2>/dev/null; then
-    echo "DEBUG: Successfully sent SIGUSR1 to PID $PID" >&2
+    echo "$(date): DEBUG: Successfully sent SIGUSR1 to PID $PID" >> "$DEBUG_LOG"
     # Try to determine current state for better notification
     if [ -f "$STATE_FILE" ]; then
         STATE=$(cat "$STATE_FILE" 2>/dev/null || echo "unknown")
