@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import threading
@@ -104,8 +105,21 @@ class VisualIndicator:
     def _remove_overlay_window(self):
         """Remove the overlay window"""
         try:
-            # Kill the indicator window
-            subprocess.run(["hyprctl", "dispatch", "closewindow", "class:stt_indicator"])
+            # First check if there's actually a window with this class before trying to close it
+            result = subprocess.run(
+                ["hyprctl", "clients", "-j"],
+                capture_output=True, text=True, check=True
+            )
+            clients = json.loads(result.stdout)
+            stt_windows = [client for client in clients if client.get("class") == "stt_indicator"]
+
+            if stt_windows:
+                # Only close if we found actual stt_indicator windows
+                subprocess.run(["hyprctl", "dispatch", "closewindow", "class:stt_indicator"])
+                print(f"Closed {len(stt_windows)} stt_indicator window(s)")
+            else:
+                print("No stt_indicator windows found to close")
+
             # Clean up workspace rules
             subprocess.run(["hyprctl", "keyword", "windowrulev2", "remove,class:^(stt_indicator)$"])
         except Exception as e:
