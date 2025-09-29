@@ -19,7 +19,6 @@ from .whisper_processor import WhisperProcessor
 from .hyprland_manager import HyprlandManager
 from .wayland_injector import WaylandInjector
 from .keyboard_listener import KeyboardListener
-from .visual_indicator import VisualIndicator
 from .utils import create_notification, get_config_path, setup_logger, check_dependencies
 
 # Configure logger
@@ -45,7 +44,6 @@ class WhisperSTTController:
         self.audio_capture = None
         self.whisper_processor = None
         self.text_injector = None
-        self.visual_indicator = None
         self.initialized = False
         self.state_file = os.path.expanduser("~/.local/share/hyprstt/state")
 
@@ -199,15 +197,8 @@ class WhisperSTTController:
                 if hotkey_method == "direct":
                     raise
 
-            try:
-                # Initialize visual indicator if enabled
-                if self.config["ui"].get("visual_indicator", {}).get("enabled", False):
-                    logger.info("Initializing visual indicator...")
-                    self.visual_indicator = VisualIndicator(self.config["ui"].get("visual_indicator", {}))
-                    logger.info("Visual indicator initialized successfully")
-            except Exception as e:
-                logger.error(f"Failed to initialize visual indicator: {e}")
-                # Non-critical component, continue without it
+            # Visual indicator has been removed from this version for reliability
+            logger.info("Visual indicator disabled (removed for stability)")
 
             # Mark as initialized
             self.initialized = True
@@ -322,12 +313,7 @@ class WhisperSTTController:
         # Write state for external script
         self._write_state("recording" if is_recording else "idle")
 
-        # Show/hide visual indicator
-        if self.visual_indicator:
-            if is_recording:
-                self.visual_indicator.show()
-            else:
-                self.visual_indicator.hide()
+        # Visual indicator has been removed for stability
 
         if self.config["ui"]["notifications"]:
             if is_recording:
@@ -371,8 +357,6 @@ class WhisperSTTController:
                 transcription_id = int(time.time())
                 logger.info(f"*** DEBUGGING: Starting transcription #{transcription_id} in background thread")
 
-                # Add a small delay to make sure the visual indicator has time to update
-                time.sleep(0.1)
 
                 # Process in background to avoid blocking UI
                 threading.Thread(
@@ -527,9 +511,7 @@ class WhisperSTTController:
             if self.audio_capture:
                 self.audio_capture.cleanup()
 
-            # Clean up visual indicator
-            if self.visual_indicator:
-                self.visual_indicator.hide()
+            # Visual indicator cleanup no longer needed
 
             logger.info("System shutdown complete")
             return True

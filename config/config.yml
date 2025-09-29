@@ -20,11 +20,4 @@ hotkeys:
 ui:
   notifications: true  # Enable desktop notifications
   notification_timeout: 2  # Notification display time in seconds
-  visual_indicator:
-    enabled: true  # Show visual indicator when recording
-    type: "overlay"  # Indicator type: overlay, border, icon
-    position: "top-right"  # Position: top-left, top-right, bottom-left, bottom-right, top-center, bottom-center
-    size: "medium"  # Size: small, medium, large (changed to medium for better visibility)
-    color: "#ff0000"  # Color in hex format
-    opacity: 0.8  # Opacity (0.0-1.0) (increased for better visibility)
-    pulse: true  # Enable pulsing effect
+  # visual_indicator has been removed for stability - notifications provide feedback
