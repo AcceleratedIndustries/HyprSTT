@@ -22,17 +22,24 @@ if [ -f "$PID_FILE" ]; then
     PID=$(cat "$PID_FILE" 2>/dev/null || echo "")
     # Validate that the PID is still running and is the correct process
     if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
-        # Check if it's actually our process
-        if ! ps -p "$PID" -o cmd= | grep -q "python -m src.main"; then
+        # Check if it's actually our process - be more flexible with the grep
+        CMD_LINE=$(ps -p "$PID" -o cmd= 2>/dev/null || echo "")
+        if [ -n "$CMD_LINE" ] && echo "$CMD_LINE" | grep -q "src\.main"; then
+            # PID is valid and correct process
+            echo "DEBUG: Using PID from file: $PID" >&2
+        else
+            echo "DEBUG: PID file exists but process doesn't match. CMD: $CMD_LINE" >&2
             PID=""
         fi
     else
+        echo "DEBUG: PID from file not running or kill -0 failed" >&2
         PID=""
     fi
 fi
 
 # Fall back to pgrep if PID file method failed
 if [ -z "$PID" ]; then
+    echo "DEBUG: Falling back to pgrep" >&2
     PIDS=$(pgrep -f "$PROCESS_NAME" || true)
 
     if [ -z "$PIDS" ]; then
