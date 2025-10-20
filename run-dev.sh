@@ -14,18 +14,20 @@ if pgrep -f "python -m src.main" > /dev/null; then
     exit 0
 fi
 
-# Check if virtual environment exists
+# Determine which Python to use
 if [ -d "venv" ]; then
-    source venv/bin/activate
+    PYTHON_CMD="$SCRIPT_DIR/venv/bin/python"
 elif [ -d ".venv" ]; then
-    source .venv/bin/activate
+    PYTHON_CMD="$SCRIPT_DIR/.venv/bin/python"
+else
+    PYTHON_CMD="python"
 fi
 
 # Make sure we're in the right directory
 export PYTHONPATH=$SCRIPT_DIR:$PYTHONPATH
 
 # Run the application in debug mode in background so we can capture PID
-python -m src.main &
+"$PYTHON_CMD" -m src.main &
 APP_PID=$!
 
 # Save PID for toggle script

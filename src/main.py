@@ -140,6 +140,7 @@ class WhisperSTTController:
                     chunk=self.config["audio"]["chunk"],
                     channels=self.config["audio"]["channels"],
                     max_duration=self.config["audio"].get("max_duration", 0),
+                    device_index=self.config["audio"].get("device_index"),
                     on_recording_change=self._on_recording_changed
                 )
                 logger.info("Audio capture initialized successfully")

@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 from typing import Optional, Callable
+from scipy import signal
 
 # Configure logger
 logger = logging.getLogger("whisper_stt")
@@ -17,21 +18,25 @@ class AudioCapture:
                  chunk: int = 1024,
                  channels: int = 1,
                  max_duration: int = 0,
+                 device_index: Optional[int] = None,
                  on_recording_change: Optional[Callable[[bool], None]] = None):
         """
         Initialize audio capture module
-        
+
         Args:
             rate: Sample rate (Whisper expects 16kHz)
             chunk: Buffer size
             channels: Number of audio channels (1 for mono)
+            max_duration: Maximum recording duration in seconds (0 for unlimited)
+            device_index: PyAudio device index (None for default)
             on_recording_change: Callback for recording state changes
         """
-        self.rate = rate
+        self.target_rate = rate  # Target rate for Whisper (16kHz)
         self.chunk = chunk
         self.channels = channels
         self.format = pyaudio.paInt16
-        
+        self.device_index = device_index
+
         # Suppress ALSA warnings during PyAudio initialization
         stderr_fd = os.dup(2)
         with open(os.devnull, 'w') as devnull:
@@ -41,13 +46,30 @@ class AudioCapture:
             finally:
                 os.dup2(stderr_fd, 2)
                 os.close(stderr_fd)
+
+        # Determine actual recording rate based on device capabilities
+        self.rate = self._get_device_sample_rate()
+        logger.info(f"Device sample rate: {self.rate} Hz, target rate: {self.target_rate} Hz")
+
         self.recording = False
         self.frames = []
         self.recording_thread = None
         self.on_recording_change = on_recording_change
         self.max_duration = max_duration  # Maximum recording duration in seconds (0 for no limit)
         self.last_audio_level = 0.0  # Track audio level to help diagnose issues
-        
+
+    def _get_device_sample_rate(self) -> int:
+        """Get the native sample rate for the recording device"""
+        if self.device_index is not None:
+            try:
+                info = self.p.get_device_info_by_index(self.device_index)
+                return int(info['defaultSampleRate'])
+            except Exception as e:
+                logger.warning(f"Could not get device sample rate, using target rate: {e}")
+                return self.target_rate
+        else:
+            return self.target_rate
+
     def start_recording(self):
         """Start audio recording in a background thread"""
         if self.recording:
@@ -105,6 +127,13 @@ class AudioCapture:
                                         for frame in self.frames])
             logger.info(f"Audio data shape: {audio_data.shape}, duration: {len(audio_data)/self.rate:.2f} seconds")
 
+            # Resample if necessary
+            if self.rate != self.target_rate:
+                logger.info(f"Resampling from {self.rate} Hz to {self.target_rate} Hz")
+                num_samples = int(len(audio_data) * self.target_rate / self.rate)
+                audio_data = signal.resample(audio_data, num_samples).astype(np.int16)
+                logger.info(f"Resampled audio shape: {audio_data.shape}")
+
             # Analyze audio levels
             audio_level = np.abs(audio_data).mean()
             self.last_audio_level = audio_level  # Store for diagnostic use
@@ -156,13 +185,20 @@ class AudioCapture:
         except Exception as e:
             logger.error(f"Error checking audio devices: {e}")
             
-        stream = self.p.open(
-            format=self.format,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            frames_per_buffer=self.chunk
-        )
+        # Open stream with optional device selection
+        stream_params = {
+            'format': self.format,
+            'channels': self.channels,
+            'rate': self.rate,
+            'input': True,
+            'frames_per_buffer': self.chunk
+        }
+
+        if self.device_index is not None:
+            stream_params['input_device_index'] = self.device_index
+            logger.info(f"Using audio device index: {self.device_index}")
+
+        stream = self.p.open(**stream_params)
 
         start_time = time.time()
         max_frames = 0

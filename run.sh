@@ -14,16 +14,18 @@ if pgrep -f "python -m src.main" > /dev/null; then
     exit 0
 fi
 
-# Check if virtual environment exists
+# Determine which Python to use
 if [ -d "venv" ]; then
-    source venv/bin/activate
+    PYTHON_CMD="$SCRIPT_DIR/venv/bin/python"
+else
+    PYTHON_CMD="python"
 fi
 
 # Make sure we're in the right directory
 export PYTHONPATH=$SCRIPT_DIR:$PYTHONPATH
 
-# Run the application
-nohup python -m src.main > ~/.local/share/hyprstt/logs/hyprstt.log 2>&1 &
+# Run the application with the correct Python interpreter
+nohup "$PYTHON_CMD" -m src.main > ~/.local/share/hyprstt/logs/hyprstt.log 2>&1 &
 APP_PID=$!
 
 # Wait a moment for the app to start

@@ -3,6 +3,7 @@ audio:
   chunk: 4096  # Buffer size (increased for longer recordings)
   channels: 1  # Mono audio
   max_duration: 0  # Maximum recording duration in seconds (0 for unlimited, was 30)
+  device_index: null  # PyAudio device index (null for default, or specify index number)
 
 whisper:
   model_size: "medium"  # Changed to medium for better accuracy
