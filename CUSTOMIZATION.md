@@ -86,14 +86,16 @@ To balance transcription accuracy and speed:
 
 ### 4. Customizing Visual Feedback
 
-To adjust the visual indicators and notifications:
+To adjust the visual indicators, notifications, and tray icon menu:
 
-1. Edit `config/config.yml`
+1. Edit `config/config.yml` (or `~/.config/hyprstt/config.yml` for existing installations)
 2. Modify the `ui` section:
    ```yaml
    ui:
      notifications: true
      notification_timeout: 2
+     tray_icon: true  # Enable system tray icon
+     tray_menu_font_size: 11  # Font size for tray icon menu (default: 11)
      visual_indicator:
        enabled: true
        type: "overlay"
@@ -103,6 +105,8 @@ To adjust the visual indicators and notifications:
        opacity: 0.8
        pulse: true
    ```
+
+**Note for existing users**: If you're upgrading from a previous version, add the `tray_menu_font_size: 11` line to your `~/.config/hyprstt/config.yml` file under the `ui` section to customize the tray menu font size.
 
 ### 5. Modifying Notification Behavior
 

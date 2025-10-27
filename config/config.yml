@@ -22,4 +22,5 @@ ui:
   notifications: true  # Enable desktop notifications
   notification_timeout: 2  # Notification display time in seconds
   tray_icon: true  # Enable system tray icon
+  tray_menu_font_size: 11  # Font size for tray icon menu (default: 11)
   # visual_indicator has been removed for stability - notifications provide feedback

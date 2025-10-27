@@ -213,11 +213,13 @@ class WhisperSTTController:
             if self.qt_app and self.config["ui"].get("tray_icon", True):
                 try:
                     logger.info("Initializing system tray icon...")
+                    font_size = self.config["ui"].get("tray_menu_font_size", 11)
                     self.tray_icon = TrayIcon(
                         app=self.qt_app,
-                        on_exit=self._handle_tray_exit
+                        on_exit=self._handle_tray_exit,
+                        font_size=font_size
                     )
-                    logger.info("System tray icon initialized successfully")
+                    logger.info(f"System tray icon initialized successfully (menu font size: {font_size}pt)")
                 except Exception as e:
                     logger.warning(f"System tray icon not available: {e}")
                     logger.info("Application will continue without tray icon")
