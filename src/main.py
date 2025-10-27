@@ -20,6 +20,8 @@ from .hyprland_manager import HyprlandManager
 from .wayland_injector import WaylandInjector
 from .keyboard_listener import KeyboardListener
 from .utils import create_notification, get_config_path, setup_logger, check_dependencies
+from PyQt6.QtWidgets import QApplication
+from .tray_icon import TrayIcon
 
 # Configure logger
 logger = setup_logger("hyprstt")
@@ -28,16 +30,21 @@ class WhisperSTTController:
     """
     Main controller for HyprSTT system on Hyprland
     """
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: Optional[str] = None, qt_app: Optional[QApplication] = None):
         """
         Initialize the controller
-        
+
         Args:
             config_path: Path to configuration file
+            qt_app: QApplication instance for tray icon (optional)
         """
         # Load configuration
         self.config = self._load_config(config_path)
-        
+
+        # Store Qt app reference
+        self.qt_app = qt_app
+        self.tray_icon = None
+
         # Initialize state
         self.is_recording = False
         self.keyboard_listener_thread = None
@@ -201,6 +208,22 @@ class WhisperSTTController:
             # Visual indicator has been removed from this version for reliability
             logger.info("Visual indicator disabled (removed for stability)")
 
+            # Initialize system tray icon if Qt app is available and enabled in config
+            if self.qt_app and self.config["ui"].get("tray_icon", True):
+                try:
+                    logger.info("Initializing system tray icon...")
+                    self.tray_icon = TrayIcon(
+                        app=self.qt_app,
+                        on_exit=self._handle_tray_exit
+                    )
+                    logger.info("System tray icon initialized successfully")
+                except Exception as e:
+                    logger.warning(f"System tray icon not available: {e}")
+                    logger.info("Application will continue without tray icon")
+                    self.tray_icon = None
+            elif not self.config["ui"].get("tray_icon", True):
+                logger.info("System tray icon disabled in configuration")
+
             # Mark as initialized
             self.initialized = True
             logger.info("System initialized successfully")
@@ -329,7 +352,28 @@ class WhisperSTTController:
                     "Processing speech...",
                     timeout=self.config["ui"]["notification_timeout"]
                 )
-    
+
+    def _handle_tray_exit(self):
+        """Handle exit request from system tray"""
+        logger.info("Exit requested from system tray")
+
+        # Show notification
+        if self.config["ui"]["notifications"]:
+            create_notification(
+                "HyprSTT",
+                "Shutting down...",
+                timeout=2
+            )
+
+        # Clean up and exit
+        self.cleanup()
+
+        # Quit Qt application if available
+        if self.qt_app:
+            self.qt_app.quit()
+        else:
+            sys.exit(0)
+
     def _toggle_recording(self):
         """Toggle recording state"""
         logger.info(f"*** DEBUGGING: _toggle_recording called - is_recording={self.is_recording}, initialized={self.initialized}")
@@ -479,9 +523,9 @@ class WhisperSTTController:
         if not self.initialized:
             logger.error("System not initialized")
             return False
-            
+
         logger.info("System running - Press Ctrl+C to exit")
-        
+
         # Show startup notification
         if self.config["ui"]["notifications"]:
             hotkey_str = "+".join(self.config["hotkeys"]["toggle_recording"])
@@ -490,15 +534,24 @@ class WhisperSTTController:
                 f"Running - Use {hotkey_str} to toggle recording",
                 timeout=5
             )
-            
-        # Keep the main thread alive
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            logger.info("Keyboard interrupt received, exiting...")
-            return self.cleanup()
-            
+
+        # If Qt app is available, use Qt event loop
+        if self.qt_app:
+            logger.info("Starting Qt event loop")
+            try:
+                return self.qt_app.exec() == 0
+            except KeyboardInterrupt:
+                logger.info("Keyboard interrupt received, exiting...")
+                return self.cleanup()
+        else:
+            # Keep the main thread alive (original behavior)
+            try:
+                while True:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                logger.info("Keyboard interrupt received, exiting...")
+                return self.cleanup()
+
         return True
     
     def cleanup(self):
@@ -514,6 +567,10 @@ class WhisperSTTController:
 
             # Visual indicator cleanup no longer needed
 
+            # Hide tray icon
+            if self.tray_icon:
+                self.tray_icon.hide()
+
             logger.info("System shutdown complete")
             return True
         except Exception as e:
@@ -522,12 +579,19 @@ class WhisperSTTController:
 
 def main():
     """Main entry point"""
-    controller = WhisperSTTController()
+    # Initialize Qt Application for system tray
+    app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)  # Don't quit when windows close
+    app.setApplicationName("HyprSTT")
+
+    # Create controller with Qt app
+    controller = WhisperSTTController(qt_app=app)
 
     # Handle termination signals
     def signal_handler(sig, frame):
         print("\nShutting down...")
         controller.cleanup()
+        app.quit()
         sys.exit(0)
 
     # Handle toggle signal
@@ -540,7 +604,7 @@ def main():
     signal.signal(signal.SIGUSR1, toggle_handler)  # Add SIGUSR1 for external toggle
 
     # Run the controller
-    controller.run()
+    sys.exit(0 if controller.run() else 1)
     
 if __name__ == "__main__":
     main()
