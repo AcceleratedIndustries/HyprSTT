@@ -22,7 +22,7 @@ echo "Checking system dependencies..."
 MISSING_DEPS=()
 
 # Mandatory dependencies
-for dep in python python3 python-pip socat wtype wl-copy
+for dep in python python3 python-pip socat wtype wl-copy notify-send
 do
     if ! command_exists "$dep"; then
         MISSING_DEPS+=("$dep")
@@ -33,9 +33,9 @@ if [ ${#MISSING_DEPS[@]} -gt 0 ]; then
     echo "Missing required dependencies: ${MISSING_DEPS[*]}"
     echo "Please install them using your package manager."
     echo "For Arch-based distributions:"
-    echo "  sudo pacman -S python python-pip socat wtype wl-clipboard"
+    echo "  sudo pacman -S python python-pip portaudio libnotify wtype wl-clipboard socat ffmpeg python-pyqt6 libsndfile"
     echo "For Debian/Ubuntu:"
-    echo "  sudo apt-get install python3 python3-pip socat wtype wl-clipboard"
+    echo "  sudo apt-get install python3 python3-pip portaudio19-dev libnotify-bin wtype wl-clipboard socat ffmpeg python3-pyqt6 libsndfile1"
     exit 1
 fi
 

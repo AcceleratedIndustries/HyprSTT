@@ -101,16 +101,18 @@ class WhisperProcessor:
             print(traceback.format_exc())
             raise RuntimeError(f"Failed to load Whisper model: {e}")
     
-    def transcribe_audio(self, 
+    def transcribe_audio(self,
                         audio_data: Union[str, np.ndarray],
+                        sample_rate: int = 16000,
                         options: Optional[Dict[str, Any]] = None) -> str:
         """
         Transcribe audio data to text
-        
+
         Args:
             audio_data: Audio data as numpy array or path to audio file
+            sample_rate: Sample rate of the audio data (Whisper resamples to 16kHz internally)
             options: Additional options for transcription
-            
+
         Returns:
             Transcribed text
         """
@@ -172,8 +174,8 @@ class WhisperProcessor:
                     logger.info(f"Saving audio to temporary file: {temp_path}")
                     try:
                         normalized_audio = audio_data.astype(np.float32) / 32768.0
-                        sf.write(temp_path, normalized_audio, 16000)
-                        logger.info(f"Temporary WAV file created, size: {os.path.getsize(temp_path)} bytes")
+                        sf.write(temp_path, normalized_audio, sample_rate)
+                        logger.info(f"Temporary WAV file created at {sample_rate} Hz, size: {os.path.getsize(temp_path)} bytes")
 
                         segments, info = self.model.transcribe(
                             temp_path,

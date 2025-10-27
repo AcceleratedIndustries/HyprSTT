@@ -7,7 +7,6 @@ import logging
 import os
 import sys
 from typing import Optional, Callable
-from scipy import signal
 
 # Configure logger
 logger = logging.getLogger("whisper_stt")
@@ -126,13 +125,7 @@ class AudioCapture:
             audio_data = np.concatenate([np.frombuffer(frame, dtype=np.int16)
                                         for frame in self.frames])
             logger.info(f"Audio data shape: {audio_data.shape}, duration: {len(audio_data)/self.rate:.2f} seconds")
-
-            # Resample if necessary
-            if self.rate != self.target_rate:
-                logger.info(f"Resampling from {self.rate} Hz to {self.target_rate} Hz")
-                num_samples = int(len(audio_data) * self.target_rate / self.rate)
-                audio_data = signal.resample(audio_data, num_samples).astype(np.int16)
-                logger.info(f"Resampled audio shape: {audio_data.shape}")
+            logger.info(f"Audio sample rate: {self.rate} Hz (Whisper will resample to 16kHz internally)")
 
             # Analyze audio levels
             audio_level = np.abs(audio_data).mean()
@@ -158,7 +151,7 @@ class AudioCapture:
                 except Exception as e:
                     logger.error(f"Could not get input device info: {e}")
 
-            return audio_data
+            return (audio_data, self.rate)
         except Exception as e:
             logger.error(f"Error processing audio frames: {e}")
             return None

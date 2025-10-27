@@ -27,7 +27,7 @@ Install the following packages using your distribution's package manager:
 
 ```bash
 # For Arch-based distributions (including those using Hyprland)
-sudo pacman -S python python-pip portaudio libnotify wtype socat ffmpeg python-pyqt6
+sudo pacman -S python python-pip portaudio libnotify wtype wl-clipboard socat ffmpeg python-pyqt6 libsndfile
 
 # For Ubuntu/Debian-based with Wayland
 sudo apt-get update
@@ -36,10 +36,13 @@ sudo apt-get install -y \
   python3-dev \
   portaudio19-dev \
   libnotify-bin \
+  wtype \
+  wl-clipboard \
   socat \
   libpulse-dev \
   ffmpeg \
-  python3-pyqt6
+  python3-pyqt6 \
+  libsndfile1
 
 # Install wtype (Wayland typing tool)
 # For Arch:

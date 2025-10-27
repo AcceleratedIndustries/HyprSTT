@@ -65,23 +65,8 @@ echo "$(date): DEBUG: Current focused window PID: $(hyprctl activewindow | grep 
 
 if kill -USR1 "$PID" 2>/dev/null; then
     echo "$(date): DEBUG: Successfully sent SIGUSR1 to PID $PID" >> "$DEBUG_LOG"
-    # Try to determine current state for better notification
-    if [ -f "$STATE_FILE" ]; then
-        STATE=$(cat "$STATE_FILE" 2>/dev/null || echo "unknown")
-        case "$STATE" in
-            "recording")
-                notify-send "HyprSTT" "🎤 Recording started" --expire-time=${NOTIFICATION_TIMEOUT}000
-                ;;
-            "idle")
-                notify-send "HyprSTT" "⏹️ Recording stopped" --expire-time=${NOTIFICATION_TIMEOUT}000
-                ;;
-            *)
-                notify-send "HyprSTT" "🔄 Recording toggled" --expire-time=${NOTIFICATION_TIMEOUT}000
-                ;;
-        esac
-    else
-        notify-send "HyprSTT" "🔄 Recording toggled" --expire-time=${NOTIFICATION_TIMEOUT}000
-    fi
+    # Python process will handle notifications based on actual state changes
+    # No notification here to avoid race condition with state file
 else
     notify-send "HyprSTT" "❌ Failed to send toggle signal" --expire-time=${NOTIFICATION_TIMEOUT}000
     exit 1

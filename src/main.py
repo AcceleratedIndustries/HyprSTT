@@ -21,6 +21,7 @@ from .wayland_injector import WaylandInjector
 from .keyboard_listener import KeyboardListener
 from .utils import create_notification, get_config_path, setup_logger, check_dependencies
 from PyQt6.QtWidgets import QApplication
+from PyQt6.QtCore import QTimer
 from .tray_icon import TrayIcon
 
 # Configure logger
@@ -397,7 +398,13 @@ class WhisperSTTController:
         if self.is_recording:
             logger.info("*** DEBUGGING: Currently recording, stopping...")
             # Stop recording
-            audio_data = self.audio_capture.stop_recording()
+            result = self.audio_capture.stop_recording()
+            if result is not None:
+                audio_data, sample_rate = result
+                logger.info(f"*** DEBUGGING: Got audio data at {sample_rate} Hz")
+            else:
+                audio_data = None
+                sample_rate = None
             logger.info(f"*** DEBUGGING: Got audio data: {audio_data is not None}")
 
             if audio_data is not None:
@@ -409,7 +416,7 @@ class WhisperSTTController:
                 # Process in background to avoid blocking UI
                 threading.Thread(
                     target=self._process_audio,
-                    args=(audio_data, transcription_id),
+                    args=(audio_data, sample_rate, transcription_id),
                     daemon=True
                 ).start()
             else:
@@ -420,12 +427,14 @@ class WhisperSTTController:
             self.audio_capture.start_recording()
             logger.info("*** DEBUGGING: Called audio_capture.start_recording()")
     
-    def _process_audio(self, audio_data, transcription_id=None):
+    def _process_audio(self, audio_data, sample_rate, transcription_id=None):
         """
         Process recorded audio and inject transcribed text
-        
+
         Args:
             audio_data: Audio data to process
+            sample_rate: Sample rate of the audio data
+            transcription_id: Optional ID for tracking this transcription
         """
         try:
             # Get focused window before processing starts (optional for non-Hyprland compositors)
@@ -442,7 +451,7 @@ class WhisperSTTController:
             # Transcribe audio
             id_info = f" #{transcription_id}" if transcription_id else ""
             logger.info(f"Transcribing audio{id_info}...")
-            transcribed_text = self.whisper_processor.transcribe_audio(audio_data)
+            transcribed_text = self.whisper_processor.transcribe_audio(audio_data, sample_rate=sample_rate)
             
             if not transcribed_text:
                 logger.error("Transcription failed or returned empty text")
@@ -541,6 +550,11 @@ class WhisperSTTController:
         # If Qt app is available, use Qt event loop
         if self.qt_app:
             logger.info("Starting Qt event loop")
+            # Set up a timer to allow Python signal handlers to run
+            # Qt's event loop blocks Python signals, so we need to wake it periodically
+            timer = QTimer()
+            timer.start(500)  # Wake up every 500ms
+            timer.timeout.connect(lambda: None)  # Do nothing, just process signals
             try:
                 return self.qt_app.exec() == 0
             except KeyboardInterrupt:

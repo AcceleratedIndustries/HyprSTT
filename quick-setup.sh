@@ -6,21 +6,24 @@ if command -v pacman &> /dev/null; then
     echo "Arch-based system detected."
     echo "Installing system dependencies..."
     echo "You may be prompted for sudo password to install system packages."
-    sudo pacman -S --needed python python-pip python-virtualenv portaudio libnotify wtype socat ffmpeg
+    sudo pacman -S --needed python python-pip python-virtualenv portaudio libnotify wtype wl-clipboard socat ffmpeg python-pyqt6 libsndfile
 elif command -v apt-get &> /dev/null; then
     echo "Debian/Ubuntu-based system detected."
     echo "Installing system dependencies..."
     echo "You may be prompted for sudo password to install system packages."
     sudo apt-get update
-    sudo apt-get install -y python3-pip python3-venv python3-dev portaudio19-dev libnotify-bin socat libpulse-dev ffmpeg
+    sudo apt-get install -y python3-pip python3-venv python3-dev portaudio19-dev libnotify-bin wtype wl-clipboard socat libpulse-dev ffmpeg python3-pyqt6 libsndfile1
 else
     echo "Unknown package manager. Please install the following dependencies manually:"
     echo "- Python 3.8+ with pip and venv"
     echo "- PortAudio development libraries"
     echo "- libnotify"
-    echo "- wtype or ydotool"
-    echo "- socat"
-    echo "- ffmpeg"
+    echo "- wtype (for text injection)"
+    echo "- wl-clipboard (wl-copy for clipboard operations)"
+    echo "- socat (for Hyprland IPC)"
+    echo "- ffmpeg (for audio processing)"
+    echo "- Qt6/PyQt6 libraries"
+    echo "- libsndfile (for soundfile)"
 fi
 
 # Create and activate virtual environment
@@ -31,7 +34,7 @@ source .venv/bin/activate
 # Install Python dependencies
 echo "Installing Python dependencies..."
 pip install --upgrade pip
-pip install pyaudio numpy torch torchaudio faster-whisper PyYAML pynput sounddevice soundfile
+pip install -r requirements.txt
 
 # Create config directory
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hyprstt"
