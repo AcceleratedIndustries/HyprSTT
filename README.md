@@ -9,6 +9,7 @@ A Speech-to-Text system for Hyprland and Wayland environments using OpenAI's Whi
 - Injects transcribed text into the currently focused window/input field
 - Works with terminals, text editors, browsers, and other applications
 - Built specifically for Hyprland/Wayland compatibility
+- System tray icon with easy access to exit and status information
 - Customizable through configuration file
 
 ## Requirements
@@ -26,7 +27,7 @@ Install the following packages using your distribution's package manager:
 
 ```bash
 # For Arch-based distributions (including those using Hyprland)
-sudo pacman -S python python-pip portaudio libnotify wtype socat ffmpeg
+sudo pacman -S python python-pip portaudio libnotify wtype socat ffmpeg python-pyqt6
 
 # For Ubuntu/Debian-based with Wayland
 sudo apt-get update
@@ -37,7 +38,8 @@ sudo apt-get install -y \
   libnotify-bin \
   socat \
   libpulse-dev \
-  ffmpeg
+  ffmpeg \
+  python3-pyqt6
 
 # Install wtype (Wayland typing tool)
 # For Arch:
@@ -193,6 +195,16 @@ chmod +x /path/to/hyprstt/run.sh
 3. Speak clearly into your microphone
 4. Press the hotkey again to stop recording and process speech
 5. The transcribed text will be typed into the currently focused window/input field
+
+### System Tray
+
+HyprSTT runs with a system tray icon for easy access:
+
+- **Icon**: Look for the microphone icon in your system tray
+- **Right-click menu**: Right-click the icon to access options
+- **Exit**: Select "Exit HyprSTT" to gracefully shut down the application
+
+To disable the tray icon, set `tray_icon: false` in your config file.
 
 ## Troubleshooting
 
