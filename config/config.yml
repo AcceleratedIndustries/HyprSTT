@@ -21,4 +21,5 @@ hotkeys:
 ui:
   notifications: true  # Enable desktop notifications
   notification_timeout: 2  # Notification display time in seconds
+  tray_icon: true  # Enable system tray icon
   # visual_indicator has been removed for stability - notifications provide feedback

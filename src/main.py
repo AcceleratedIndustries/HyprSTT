@@ -92,7 +92,8 @@ class WhisperSTTController:
             },
             "ui": {
                 "notifications": True,
-                "notification_timeout": 2
+                "notification_timeout": 2,
+                "tray_icon": True
             }
         }
         
