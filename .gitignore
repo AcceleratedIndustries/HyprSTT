@@ -38,6 +38,7 @@ nohup.out
 build/
 dist/
 *.egg-info/
+*.tar.gz
 
 # User config (will be created by user)
 config/user_config.yml
