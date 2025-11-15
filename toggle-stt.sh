@@ -7,7 +7,11 @@
 set -euo pipefail
 
 # Configuration
-PROCESS_NAME="python -m src.main"
+PROCESS_PATTERNS=(
+    "python -m src.main"           # Standard mode
+    "python -m src.tui_controller" # TUI mode
+    "hyprstt-tui"                  # TUI launcher script
+)
 STATE_FILE="$HOME/.local/share/hyprstt/state"
 NOTIFICATION_TIMEOUT=2
 DEBUG_LOG="$HOME/.local/share/hyprstt/toggle-debug.log"
@@ -23,9 +27,9 @@ if [ -f "$PID_FILE" ]; then
     PID=$(cat "$PID_FILE" 2>/dev/null || echo "")
     # Validate that the PID is still running and is the correct process
     if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
-        # Check if it's actually our process - be more flexible with the grep
+        # Check if it's actually our process - check for either standard or TUI mode
         CMD_LINE=$(ps -p "$PID" -o cmd= 2>/dev/null || echo "")
-        if [ -n "$CMD_LINE" ] && echo "$CMD_LINE" | grep -q "src\.main"; then
+        if [ -n "$CMD_LINE" ] && (echo "$CMD_LINE" | grep -q "src\.main" || echo "$CMD_LINE" | grep -q "src\.tui_controller" || echo "$CMD_LINE" | grep -q "hyprstt-tui"); then
             # PID is valid and correct process
             echo "$(date): DEBUG: Using PID from file: $PID" >> "$DEBUG_LOG"
         else
@@ -41,7 +45,15 @@ fi
 # Fall back to pgrep if PID file method failed
 if [ -z "$PID" ]; then
     echo "$(date): DEBUG: Falling back to pgrep" >> "$DEBUG_LOG"
-    PIDS=$(pgrep -f "$PROCESS_NAME" || true)
+
+    # Try each process pattern until we find one
+    for PROCESS_NAME in "${PROCESS_PATTERNS[@]}"; do
+        PIDS=$(pgrep -f "$PROCESS_NAME" || true)
+        if [ -n "$PIDS" ]; then
+            echo "$(date): DEBUG: Found process using pattern: $PROCESS_NAME" >> "$DEBUG_LOG"
+            break
+        fi
+    done
 
     if [ -z "$PIDS" ]; then
         notify-send "HyprSTT" "Process not running - start HyprSTT first" --expire-time=${NOTIFICATION_TIMEOUT}000

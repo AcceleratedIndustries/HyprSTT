@@ -70,20 +70,38 @@ class TUIWhisperSTTController(WhisperSTTController):
 
         logger.info("Starting HyprSTT with TUI interface")
 
+        # Write PID file for toggle script
+        pid_file = os.path.expanduser("~/.local/share/hyprstt/hyprstt.pid")
+        os.makedirs(os.path.dirname(pid_file), exist_ok=True)
+        with open(pid_file, 'w') as f:
+            f.write(str(os.getpid()))
+        logger.info(f"Wrote PID {os.getpid()} to {pid_file}")
+
         # Create TUI app
         self.tui_app = HyprSTTTUI(controller=self)
 
         # Set up signal handlers for graceful shutdown
         def signal_handler(sig, frame):
             logger.info("Shutdown signal received")
+            # Clean up PID file
+            try:
+                if os.path.exists(pid_file):
+                    os.remove(pid_file)
+            except Exception as e:
+                logger.warning(f"Failed to remove PID file: {e}")
             self.cleanup()
             if self.tui_app:
                 self.tui_app.exit()
             sys.exit(0)
 
         def toggle_handler(sig, frame):
-            logger.info("Toggle signal received")
-            self._toggle_recording()
+            logger.info("Toggle signal (SIGUSR1) received from external script")
+            # Use Textual's thread-safe method to trigger toggle
+            if self.tui_app and self.tui_app.is_running:
+                self.tui_app.call_from_thread(self._toggle_recording)
+            else:
+                # Fallback if TUI isn't running yet
+                self._toggle_recording()
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
@@ -156,6 +174,13 @@ class TUIWhisperSTTController(WhisperSTTController):
             logger.error(traceback.format_exc())
             return False
         finally:
+            # Clean up PID file
+            try:
+                if os.path.exists(pid_file):
+                    os.remove(pid_file)
+                    logger.info("Removed PID file")
+            except Exception as e:
+                logger.warning(f"Failed to remove PID file: {e}")
             self.cleanup()
 
 

@@ -536,6 +536,16 @@ class WhisperSTTController:
             logger.error("System not initialized")
             return False
 
+        # Write PID file for toggle script
+        pid_file = os.path.expanduser("~/.local/share/hyprstt/hyprstt.pid")
+        try:
+            os.makedirs(os.path.dirname(pid_file), exist_ok=True)
+            with open(pid_file, 'w') as f:
+                f.write(str(os.getpid()))
+            logger.info(f"Wrote PID {os.getpid()} to {pid_file}")
+        except Exception as e:
+            logger.warning(f"Failed to write PID file: {e}")
+
         logger.info("System running - Press Ctrl+C to exit")
 
         # Show startup notification
@@ -587,6 +597,15 @@ class WhisperSTTController:
             # Hide tray icon
             if self.tray_icon:
                 self.tray_icon.hide()
+
+            # Remove PID file
+            pid_file = os.path.expanduser("~/.local/share/hyprstt/hyprstt.pid")
+            try:
+                if os.path.exists(pid_file):
+                    os.remove(pid_file)
+                    logger.info("Removed PID file")
+            except Exception as e:
+                logger.warning(f"Failed to remove PID file: {e}")
 
             logger.info("System shutdown complete")
             return True
