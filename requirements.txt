@@ -9,3 +9,5 @@ PyYAML>=6.0
 pynput>=1.7.6  # For keyboard listening without root
 evdev>=1.6.0  # For direct keyboard listening (if using root)
 PyQt6>=6.5.0
+textual>=0.47.0  # Modern TUI framework
+rich>=13.7.0  # Rich text and beautiful formatting

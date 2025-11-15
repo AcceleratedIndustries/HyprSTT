@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+"""
+HyprSTT TUI Launcher
+Launch HyprSTT with Terminal User Interface
+"""
+import sys
+import os
+
+# Add src directory to path
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
+
+from src.tui_controller import main
+
+if __name__ == "__main__":
+    main()

@@ -14,10 +14,15 @@ setup(
         "faster-whisper>=0.5.0",
         "PyYAML>=6.0",
         "evdev>=1.6.0",
+        "pynput>=1.7.6",
+        "PyQt6>=6.5.0",
+        "textual>=0.47.0",
+        "rich>=13.7.0",
     ],
     entry_points={
         'console_scripts': [
             'hyprstt=src.main:main',
+            'hyprstt-tui=src.tui_controller:main',
         ],
     },
     author="Your Name",

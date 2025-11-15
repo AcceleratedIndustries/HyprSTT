@@ -10,6 +10,12 @@ A Speech-to-Text system for Hyprland and Wayland environments using OpenAI's Whi
 - Works with terminals, text editors, browsers, and other applications
 - Built specifically for Hyprland/Wayland compatibility
 - System tray icon with easy access to exit and status information
+- **NEW: Terminal User Interface (TUI)** - Modern, keyboard-driven interface with:
+  - Real-time status dashboard
+  - Transcript history viewer
+  - Interactive configuration editor
+  - Live log viewer
+  - Built-in help system
 - Customizable through configuration file
 
 ## Requirements
@@ -160,11 +166,33 @@ Then log out and log back in for the changes to take effect.
 
 ### Running Manually
 
+**Standard Mode (with system tray):**
 ```bash
 # From the project directory
 source venv/bin/activate  # If using virtual environment
 python -m src.main
 ```
+
+**TUI Mode (Terminal User Interface):**
+```bash
+# Using the launcher script
+./hyprstt-tui
+
+# Or using the installed command (after pip install -e .)
+hyprstt-tui
+
+# Or directly with Python
+python -m src.tui_controller
+```
+
+The TUI provides a modern terminal interface with:
+- Real-time status dashboard
+- Transcript history viewer
+- Interactive configuration editor
+- Live log viewer
+- Keyboard shortcuts (`r` to record, `q` to quit, `h` for help)
+
+See [TUI_README.md](TUI_README.md) for detailed TUI documentation.
 
 ### Starting Automatically with Hyprland
 
